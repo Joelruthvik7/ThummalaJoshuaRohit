@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THUMMALA JOSHUA ROHIT | The Legacy</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/EasePack.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@100;200;300;400;600;900&family=Ms+Madi&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --gold: #D4AF37; --dark: #020202; --deep-blue: #050a15; --glow: rgba(212, 175, 55, 0.4); }
+        
+        body { 
+            background-color: var(--dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+            scrollbar-width: none;
+            cursor: none;
+        }
+        body::-webkit-scrollbar { display: none; }
+
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-signature { font-family: 'Ms Madi', cursive; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+
+        /* --- BOOK PAGE TEXTURE & OVERLAYS --- */
+        .paper-texture {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');
+            opacity: 0.05; pointer-events: none; z-index: 50; mix-blend-mode: overlay;
+        }
+
+        #reading-progress {
+            position: fixed; top: 0; left: 0; width: 0%; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--gold));
+            z-index: 10001; box-shadow: 0 0 10px var(--gold);
+        }
+
+        /* Moving Aurora Effect */
+        .aurora {
+            position: fixed; inset: 0;
+            background: linear-gradient(110deg, #050a15 0%, #0a1530 20%, #150a25 40%, #050a15 100%);
+            z-index: -3; filter: blur(100px); opacity: 0.4;
+            animation: auroraFlow 15s infinite linear;
+        }
+        @keyframes auroraFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .film-grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.1; pointer-events: none; z-index: 9999; mix-blend-mode: overlay;
+        }
+
+        /* Floating Parallax Text */
+        .parallax-bg-text {
+            position: absolute; font-size: 20vw; font-weight: 900;
+            color: rgba(255, 255, 255, 0.02);
+            white-space: nowrap; pointer-events: none; z-index: 0;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Cinematic Navigator */
+        #nav-strip {
+            position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
+            z-index: 1000; display: flex; flex-direction: column; gap: 1.5rem;
+        }
+        .nav-dot-container { display: flex; align-items: center; gap: 1rem; justify-content: flex-end; }
+        .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); opacity: 0; transition: 0.3s; }
+        .nav-dot { width: 4px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 50%; transition: 0.5s; }
+        .nav-dot-container:hover .nav-label { opacity: 1; }
+        .active .nav-dot { background: var(--gold); transform: scale(3); box-shadow: 0 0 15px var(--gold); }
+
+        /* Custom Cursor */
+        #custom-cursor {
+            width: 40px; height: 40px; border: 1px solid var(--gold);
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 10000; mix-blend-mode: difference;
+        }
+
+        .section-container {
+            min-height: 100vh; width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 15vh 10vw;
+            perspective: 2000px;
+        }
+
+        /* Book Page Flip Simulation */
+        .chapter { transform-origin: left center; transition: transform 1s ease-in-out; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        .photo-card-img {
+            width: 100%; height: 100%; object-cover: cover;
+            border-radius: 1rem; transition: transform 0.8s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+        .photo-card:hover .photo-card-img { transform: scale(1.05) rotate(-2deg); }
+
+        .book-divider {
+            height: 1px; width: 100%; 
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.3), transparent);
+            margin: 4rem 0; position: relative;
+        }
+        .book-divider::after {
+            content: '✦'; position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%); color: var(--gold);
+            font-size: 1.2rem; background: var(--dark); padding: 0 1rem;
+        }
+
+        /* Living Gallery Styles */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem; padding: 4rem;
+        }
+        .gallery-item {
+            position: relative; overflow: hidden; border-radius: 1rem;
+            aspect-ratio: 4/5; border: 1px solid rgba(212,175,55,0.1);
+        }
+        .gallery-item img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: grayscale(30%); transition: 1s all;
+        }
+        .gallery-item:hover img { filter: grayscale(0%); transform: scale(1.1); }
+        .gallery-item::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            opacity: 0.6;
+        }
+
+        #universe-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="reading-progress"></div>
+    <div class="paper-texture"></div>
+    <div class="film-grain"></div>
+    <div class="aurora"></div>
+    <div id="custom-cursor"></div>
+    <canvas id="universe-canvas"></canvas>
+
+    <div id="nav-strip"></div>
+
+    <!-- 1. PRELOADER -->
+    <div id="preloader" class="fixed inset-0 bg-black z-[10000] flex items-center justify-center p-6 text-center">
+        <div class="max-w-3xl space-y-12">
+            <div id="heartbeat" class="w-4 h-4 bg-red-600 rounded-full mx-auto opacity-0 shadow-[0_0_20px_red]"></div>
+            <p id="preloader-text" class="text-xl md:text-4xl font-serif italic text-gray-200 tracking-widest"></p>
+        </div>
+    </div>
+
+    <!-- 2. HERO -->
+    <section class="section-container chapter" data-name="Opening" id="hero">
+        <div class="parallax-bg-text" style="top: 20%; left: -10%;">LEGACY</div>
+        <div class="text-center z-10">
+            <h4 class="hero-reveal tracking-[2em] text-gold uppercase text-[10px] mb-8 opacity-0">THE JOURNEY</h4>
+            <h1 class="hero-reveal text-8xl md:text-[16rem] font-cinzel leading-none opacity-0 select-none">
+                JOSHUA<br/><span class="italic text-gold opacity-90" style="text-shadow: 0 0 80px rgba(212,175,55,0.4)">ROHIT</span>
+            </h1>
+            <p class="hero-reveal text-gray-500 font-light tracking-[0.8em] uppercase text-[10px] mt-12 opacity-0">A Vision of Faith, Strength, and Unconditional Love</p>
+        </div>
+    </section>
+
+    <!-- FILLER 1: THE PILLARS -->
+    <section class="py-20 flex justify-center gap-20 opacity-30 border-y border-white/5 bg-white/5 relative z-10">
+        <div class="text-center"><p class="font-cinzel text-xs tracking-widest">FAITH</p></div>
+        <div class="text-center"><p class="font-cinzel text-xs tracking-widest">RESILIENCE</p></div>
+        <div class="text-center"><p class="font-cinzel text-xs tracking-widest">INTEGRITY</p></div>
+        <div class="text-center"><p class="font-cinzel text-xs tracking-widest">LEGACY</p></div>
+    </section>
+
+    <!-- CHAPTER 1: THE BEGINNING -->
+    <section class="section-container chapter" data-name="Beginnings">
+        <div class="parallax-bg-text" style="bottom: 10%; right: -5%;">VISION</div>
+        <div class="grid lg:grid-cols-2 gap-20 items-center max-w-7xl relative">
+            <div class="chapter-content space-y-10">
+                <span class="text-gold font-cinzel text-xl tracking-widest">CHAPTER 01</span>
+                <h2 class="text-7xl md:text-9xl font-serif leading-none">The Beginning of a Story</h2>
+                <p class="text-gray-400 text-xl leading-relaxed max-w-xl">Every legend has a humble starting point. For Joshua Rohit, the journey began with dreams that were larger than the world around him.</p>
+                <div class="book-divider"></div>
+            </div>
+            <div class="photo-card glass p-4 rounded-[2rem] transform rotate-3 floating shadow-2xl relative">
+                <div class="aspect-[4/5] bg-neutral-900 rounded-2xl overflow-hidden border border-white/10">
+                    <img src="https://i.pinimg.com/736x/8a/ad/c3/8aadc3c2f089a517f5c5ac7cc0e8e90d.jpg" alt="Beginning" class="photo-card-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAPTER 2: THE SON -->
+    <section class="section-container chapter" data-name="The Son">
+        <div class="max-w-4xl text-center space-y-16">
+            <div class="relative inline-block">
+                <div class="absolute inset-0 bg-gold blur-[100px] opacity-20 animate-pulse"></div>
+                <i data-lucide="heart" class="w-20 h-20 text-gold mx-auto relative z-10"></i>
+            </div>
+            <h2 class="text-6xl md:text-8xl font-serif">The <span class="italic text-gold">Son</span></h2>
+            <div class="glass p-16 rounded-[3rem] italic text-3xl text-gray-300 font-serif leading-relaxed relative">
+                <div class="absolute -top-10 -left-10 text-9xl text-gold/10 font-serif">"</div>
+                "From your childhood, Mom always prayed for you and dedicated you to God. I strongly believe that God's hand has always been upon your life."
+            </div>
+        </div>
+    </section>
+
+    <!-- MEMORY BOOK SEPARATOR -->
+    <section class="py-40 relative flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 flex items-center justify-center opacity-5">
+            <h2 class="font-cinzel text-[30vw] select-none">MOMENTS</h2>
+        </div>
+        <div class="relative z-10 text-center space-y-6">
+            <div class="w-24 h-1 bg-gold mx-auto mb-10"></div>
+            <p class="font-cinzel tracking-[1em] text-gold text-xs">COLLECTED MEMORIES</p>
+            <h3 class="font-serif italic text-5xl md:text-7xl">A lifetime of quiet strength.</h3>
+        </div>
+    </section>
+
+    <!-- CHAPTER 3: THE BROTHER -->
+    <section class="section-container chapter" data-name="Brotherhood">
+        <div class="parallax-bg-text" style="top: 10%; left: 30%;">ARMY</div>
+        <div class="grid md:grid-cols-2 gap-16 max-w-7xl">
+            <div class="space-y-12">
+                <h3 class="text-gold font-cinzel text-xl tracking-widest">CHAPTER 03</h3>
+                <h2 class="text-7xl font-serif leading-tight">The Brother & <br/>The <span class="italic text-gold">Greatest Army</span></h2>
+                <div class="text-gray-400 text-2xl leading-relaxed italic space-y-8">
+                    <p>"To me, you are not just my brother. You are my inspiration. My protector. My strength."</p>
+                </div>
+            </div>
+            <div class="glass p-12 rounded-[3rem] border-t-2 border-gold/20 flex flex-col justify-center">
+                <p class="text-gray-300 text-xl leading-relaxed">"We have been through many hardships together since childhood... yet step by step we kept moving forward."</p>
+                <div class="mt-10 flex gap-4">
+                    <div class="w-12 h-1 bg-gold"></div>
+                    <div class="w-4 h-1 bg-gold opacity-30"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAPTER 5: THE WARRIOR -->
+    <section class="section-container chapter overflow-hidden" data-name="Warrior" id="warrior-section">
+        <div id="thunder-overlay" class="fixed inset-0 bg-white opacity-0 pointer-events-none z-50"></div>
+        <div class="parallax-bg-text" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">STRENGTH</div>
+        <div class="text-center space-y-12 z-10">
+            <i data-lucide="shield" class="w-24 h-24 text-gray-700 mx-auto mb-10"></i>
+            <h2 class="text-7xl md:text-[10rem] font-serif italic text-white/5 tracking-tighter">THE WARRIOR</h2>
+            <p class="text-3xl text-gold font-serif italic max-w-3xl mx-auto">"Fought in silence. Won in faith. Carried burdens so others could walk light."</p>
+        </div>
+    </section>
+
+    <!-- CHAPTER 8: THE JOSEPH STORY -->
+    <section class="section-container chapter" data-name="Joseph Parallel">
+        <div class="max-w-6xl w-full glass p-20 rounded-[4rem] border border-gold/10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-10 opacity-5"><i data-lucide="book-open" class="w-64 h-64"></i></div>
+            <div class="relative z-10 space-y-16">
+                <h3 class="text-center text-gold font-cinzel tracking-[1em] text-xs">THE DIVINE PARALLEL</h3>
+                <div class="grid lg:grid-cols-2 gap-20 items-center">
+                    <div class="space-y-8">
+                        <p class="font-serif text-2xl text-gray-300 leading-relaxed italic">
+                            "Joseph was betrayed, misunderstood, and rejected. Yet he never lost his faith. He chose forgiveness, love, and trust in God's plan."
+                        </p>
+                    </div>
+                    <div class="text-center space-y-8 bg-black/40 p-12 rounded-[3rem] border border-white/5">
+                        <p class="text-gold text-6xl font-cinzel">50:20</p>
+                        <p class="text-white text-3xl font-serif italic">"You intended to harm me, but God intended it for good."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAPTER 9: FITNESS DISCIPLINE -->
+    <section class="section-container chapter" data-name="Discipline">
+        <div class="parallax-bg-text" style="top: 0; right: 0;">IRON</div>
+        <div class="grid lg:grid-cols-3 gap-10 w-full max-w-7xl">
+            <div class="glass p-12 flex flex-col justify-end h-[70vh] rounded-[3rem] border-b-4 border-gold relative overflow-hidden group">
+                <div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-1000">
+                    <img src="https://i.pinimg.com/736x/bf/43/80/bf4380343760bc1d3db0be419ba9df91.jpg" class="w-full h-full object-cover">
+                </div>
+                <div class="relative z-10">
+                    <h4 class="text-gold font-cinzel tracking-widest text-xs mb-6">ATHLETICISM</h4>
+                    <h3 class="text-5xl font-serif mb-8">Iron Mastery</h3>
+                    <p class="text-gray-400">"Your fitness journey. Your gym discipline. Your life experiences... Your story is worth sharing."</p>
+                </div>
+            </div>
+            <div class="lg:col-span-2 relative rounded-[3rem] overflow-hidden glass border border-white/10 group">
+                <img src="https://i.pinimg.com/736x/bf/43/80/bf4380343760bc1d3db0be419ba9df91.jpg" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div class="absolute bottom-10 left-10">
+                    <p class="text-gold font-cinzel text-xl tracking-[1em] opacity-80">DISCIPLINE IS FREEDOM</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE FULL BIRTHDAY MESSAGE (DOCUMENTARY MODE) -->
+    <section class="section-container chapter" data-name="The Letter">
+        <div class="max-w-5xl glass p-16 md:p-32 rounded-[5rem] relative book-page-shadow">
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gold text-black font-cinzel px-10 py-2 text-xs tracking-widest rounded-full shadow-xl">THE BROTHER'S LETTER</div>
+            <div class="space-y-12 text-gray-300 text-xl md:text-2xl font-light leading-relaxed">
+                <p class="text-gold font-serif text-5xl italic text-center mb-20 animate-pulse">Happy Birthday, Peddhannaya</p>
+                
+                <p class="letter-para">Wishing you many more happy returns of the day, Peddhannaya. May God bless you with endless happiness, good health, peace, wisdom, success, and abundant blessings throughout your life. I pray that every dream in your heart and every prayer you have carried silently before God will be fulfilled in His perfect timing.</p>
+                
+                <p class="letter-para">You are one of the strongest people I know and the true backbone of our family. Many people may never fully understand the sacrifices you have made, the responsibilities you have carried, or the battles you have fought in silence. Some may speak without knowing your story, but I truly believe that one day they will recognize your value, your heart, and your character. The same people who misunderstand you today will one day respect the man you have become.</p>
+
+                <p class="letter-para">From your childhood, Mom always prayed for you and dedicated you to God. I strongly believe that God's hand has always been upon your life. Every struggle, every delay, every disappointment, and every challenge has been part of His plan to shape you into the person you are today.</p>
+
+                <div class="py-10 border-y border-gold/10 text-center scale-up-reveal">
+                    <p class="text-gold font-cinzel text-sm tracking-widest mb-6">THE CORE ESSENCE</p>
+                    <p class="italic text-3xl font-serif">"You genuinely love people. You trust people. You support people."</p>
+                </div>
+
+                <p class="letter-para">Whenever someone is struggling, you are always willing to help. Many people never get to see the kindness that exists in your heart. The sacrifices you make, the support you give, and the care you show often go unnoticed.</p>
+
+                <p class="letter-para">I am different in some ways. I tend to observe people, understand their intentions, and decide how close I should be based on their actions and character. But you are not like that. You choose to see the good in people. You believe in them. You encourage them. You give them chances.</p>
+
+                <p class="letter-para">That is your greatness. That is your strength. And sometimes, that same quality can become your weakness. But in today's world, it is rare to find someone with a genuinely pure heart, sincere love, and a selfless desire to help others. You are one of those rare people.</p>
+
+                <div class="pt-20 text-right">
+                    <p class="text-gold font-serif text-3xl italic">Happy Birthday, Peddhannaya!</p>
+                    <p class="font-signature text-7xl mt-6 text-white">Joel Ruthvik</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIVING VISUAL GALLERY -->
+    <section class="py-40 bg-black/40 chapter" data-name="Gallery">
+        <div class="text-center mb-20 space-y-4">
+            <h2 class="font-cinzel text-xs tracking-[1em] text-gray-500">THE LIVING ARCHIVE</h2>
+            <p class="font-serif italic text-3xl text-gold">Capturing the Essence of a Journey</p>
+        </div>
+        
+        <div class="gallery-container" id="premium-gallery">
+            <!-- Images are mapped here -->
+            <div class="gallery-item floating-ui"><img src="https://i.pinimg.com/736x/84/8d/ae/848dae90064f4c8ab887d5680f839c22.jpg" alt="Memory 1"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 0.5s"><img src="https://i.pinimg.com/736x/c9/40/9c/c9409c7ce6580c1dd8aaeb6cb3683625.jpg" alt="Memory 2"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 1s"><img src="https://i.pinimg.com/736x/d2/a5/d6/d2a5d6a1e3ab1f09da98d892367f03f4.jpg" alt="Memory 3"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 1.5s"><img src="https://i.pinimg.com/736x/c4/07/4b/c4074b6781ffe516a644a367379653a0.jpg" alt="Memory 4"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 2s"><img src="https://i.pinimg.com/736x/12/2e/1d/122e1dd23dce1c4047c03fd813d148e1.jpg" alt="Memory 5"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 2.5s"><img src="https://i.pinimg.com/736x/dd/fc/95/ddfc954b3a525d91922a10ffcd05319e.jpg" alt="Memory 6"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 3s"><img src="https://i.pinimg.com/736x/dd/e5/ba/dde5bab4466d42ce28fbf467d8a7546e.jpg" alt="Memory 7"></div>
+            <div class="gallery-item floating-ui" style="animation-delay: 3.5s"><img src="https://i.pinimg.com/736x/05/c9/81/05c98155ce7d53fe4f5b50d02254b526.jpg" alt="Memory 8"></div>
+        </div>
+    </section>
+
+   <!-- FINAL CLIMAX -->
+<section class="section-container chapter" data-name="End">
+    <div class="text-center space-y-10">
+
+        <div id="final-cross" class="opacity-0 scale-50">
+            <i data-lucide="crown"
+               class="w-20 h-20 md:w-24 md:h-24 text-gold mx-auto drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]">
+            </i>
+        </div>
+
+        <div class="space-y-4">
+
+            <h2 class="final-reveal text-3xl md:text-5xl lg:text-6xl font-serif text-white opacity-0 leading-tight">
+                HAPPY BIRTHDAY
+            </h2>
+
+            <h3 class="final-reveal text-4xl md:text-6xl lg:text-7xl font-cinzel italic text-gold opacity-0 gold-glow">
+                Peddha Annaya
+            </h3>
+
+        </div>
+
+        <p class="final-reveal text-gray-500 tracking-[0.5em] text-xs uppercase opacity-0">
+            BY JOEL RUTHVIK • 
+        </p>
+
+    </div>
+</section>
+
+    <script>
+        lucide.createIcons();
+        gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+        // 1. CUSTOM CURSOR
+        const cursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, { x: e.clientX - 20, y: e.clientY - 20, duration: 0.15 });
+        });
+
+        // 2. UNIVERSE ENGINE
+        const canvas = document.getElementById('universe-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        function initStars() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            stars = Array.from({length: 400}, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                z: Math.random() * canvas.width,
+                size: Math.random() * 1.5,
+                opacity: Math.random()
+            }));
+        }
+        function animateStars() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            stars.forEach(s => {
+                let x = (s.x - canvas.width / 2) * (canvas.width / s.z) + canvas.width / 2;
+                let y = (s.y - canvas.height / 2) * (canvas.width / s.z) + canvas.height / 2;
+                let size = s.size * (canvas.width / s.z);
+                ctx.fillStyle = `rgba(212,175,55,${s.opacity})`;
+                ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI*2); ctx.fill();
+                s.z -= 0.3; if(s.z <= 0) s.z = canvas.width;
+            });
+            requestAnimationFrame(animateStars);
+        }
+        initStars(); animateStars();
+
+        // 3. BOOK PAGE SCROLL EXPERIENCE
+        gsap.utils.toArray(".chapter").forEach((section, i) => {
+            ScrollTrigger.create({
+                trigger: section,
+                start: "top bottom",
+                onEnter: () => {
+                    gsap.fromTo(section, { rotationY: -15, opacity: 0, x: 100 }, { rotationY: 0, opacity: 1, x: 0, duration: 1.5, ease: "power4.out" });
+                }
+            });
+        });
+
+        // Reading Progress
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("reading-progress").style.width = scrolled + "%";
+        });
+
+        // 4. CHAPTER NAVIGATOR
+        const navStrip = document.getElementById('nav-strip');
+        const chapters = document.querySelectorAll('.chapter');
+        chapters.forEach((ch, i) => {
+            const container = document.createElement('div');
+            container.className = 'nav-dot-container';
+            container.innerHTML = `<span class="nav-label">${ch.dataset.name}</span><div class="nav-dot"></div>`;
+            navStrip.appendChild(container);
+            ScrollTrigger.create({
+                trigger: ch, start: "top center", end: "bottom center",
+                onEnter: () => container.classList.add('active'),
+                onLeave: () => container.classList.remove('active'),
+                onEnterBack: () => container.classList.add('active'),
+                onLeaveBack: () => container.classList.remove('active')
+            });
+        });
+
+        // 5. PRELOADER
+        const preTL = gsap.timeline();
+        const phrases = ["Every family has a hero...", "Every journey has a purpose...", "Opening the pages of a legacy...", "THUMMALA JOSHUA ROHIT"];
+        preTL.to("#heartbeat", { opacity: 1, scale: 3, repeat: 7, yoyo: true, duration: 0.3 });
+        phrases.forEach(p => {
+            preTL.to("#preloader-text", { text: p, duration: 1.2 }).to("#preloader-text", { opacity: 0, delay: 0.4 }).set("#preloader-text", { opacity: 1, text: "" });
+        });
+        preTL.to("#preloader", { yPercent: -100, duration: 2, ease: "expo.inOut" })
+             .to(".hero-reveal", { opacity: 1, y: 0, stagger: 0.3, duration: 2, ease: "power4.out" });
+
+        // 6. LIVING GALLERY ANIMATION
+        gsap.utils.toArray(".gallery-item").forEach((item, i) => {
+            gsap.from(item, {
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top bottom-=100",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 50,
+                rotation: i % 2 === 0 ? 5 : -5,
+                duration: 1,
+                ease: "power2.out"
+            });
+            
+            // Subtle floating motion
+            gsap.to(item, {
+                y: "random(-20, 20)",
+                x: "random(-10, 10)",
+                duration: "random(3, 5)",
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        });
+
+        // 7. PARALLAX TEXT
+        gsap.utils.toArray(".parallax-bg-text").forEach(txt => {
+            gsap.to(txt, {
+                xPercent: 20,
+                scrollTrigger: { trigger: txt, scrub: 2 }
+            });
+        });
+
+        // 8. FINAL CLIMAX
+        gsap.timeline({ scrollTrigger: { trigger: ".final-reveal", start: "top 70%" }})
+            .to("#final-cross", { opacity: 1, scale: 1.2, duration: 2, ease: "elastic.out(1, 0.3)" })
+            .to(".final-reveal", { opacity: 1, y: 0, stagger: 0.5, duration: 2, ease: "power4.out" });
+
+        window.addEventListener('resize', initStars);
+    </script>
+</body>
+</html>
